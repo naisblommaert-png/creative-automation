@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Creative Automation</title>
+<meta name="description" content="Wat je leert in het vak Creative Automation: repetitief ontwerpwerk automatiseren en AI inzetten als creatieve assistent.">
+<script>document.documentElement.classList.add('js');
+/* Weergave: apply saved display settings before the page paints */
+try { const w = JSON.parse(localStorage.getItem('ca-weergave') || '{}'); for (const k in w) if (w[k]) document.documentElement.classList.add(k === 'size' ? 'a11y-' + w[k] : 'a11y-' + k); } catch (e) {}</script>
+<link rel="preload" href="fonts/instrument-serif.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/instrument-serif-italic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/inter-tight.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="besparing.css"><!-- Tailwind classes of the simulator, compiled from besparing.js (prefix tw-, scoped to #besparing) -->
+</head>
+<body>
+
+<!-- the drawn product for the sample campaign: a water bottle called Bron -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <clipPath id="bodyclip"><rect x="18" y="58" width="64" height="176" rx="20"/></clipPath>
+    <symbol id="bottle" viewBox="0 0 100 240">
+      <rect x="36" y="4" width="28" height="24" rx="4" fill="var(--b-cap)"/>
+      <rect x="36" y="22" width="28" height="4" fill="var(--b-shade)" opacity=".5"/>
+      <path d="M40 28 h20 v12 q0 8 10 14 q12 6 12 20 v4 H18 v-4 q0 -14 12 -20 q10 -6 10 -14 z" fill="var(--b-body)"/>
+      <g clip-path="url(#bodyclip)">
+        <rect x="18" y="58" width="64" height="176" fill="var(--b-body)"/>
+        <rect x="62" y="58" width="20" height="176" fill="var(--b-shade)"/>
+        <path d="M18 176 q8 -6 16 0 t16 0 t16 0 t16 0 V234 H18 z" fill="var(--b-water)"/>
+        <path d="M18 182 q8 -6 16 0 t16 0 t16 0 t16 0" fill="none" stroke="var(--b-label)" stroke-width="2" opacity=".35"/>
+        <rect x="24" y="66" width="6" height="96" rx="3" fill="var(--b-label)" opacity=".35"/>
+      </g>
+      <rect x="18" y="104" width="64" height="48" fill="var(--b-label)"/>
+      <text x="50" y="133" text-anchor="middle" font-family="Inter Tight, sans-serif" font-weight="500" font-size="17" letter-spacing="-0.5" fill="var(--b-ink)">bron</text>
+      <text x="50" y="146" text-anchor="middle" font-family="Inter Tight, sans-serif" font-size="7" fill="var(--b-ink)" opacity=".8">750 ml</text>
+      <rect x="74" y="168" width="6" height="2" fill="var(--b-label)" opacity=".6"/>
+      <rect x="74" y="190" width="6" height="2" fill="var(--b-label)" opacity=".6"/>
+      <rect x="74" y="212" width="6" height="2" fill="var(--b-label)" opacity=".6"/>
+    </symbol>
+  </defs>
+</svg>
+
+<a class="skip" href="#main">Naar de inhoud</a>
+<canvas class="gl" aria-hidden="true"></canvas>
+
+<div class="view" data-view>
+  <button class="view__toggle" type="button" aria-expanded="false" aria-controls="view-panel">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="4.5" r="2" fill="currentColor"/><path d="M4 8.5l8 1.5 8-1.5M12 10v5m0 0l-3.5 6.5M12 15l3.5 6.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span>Weergave</span>
+  </button>
+  <div class="view__panel" id="view-panel" role="region" aria-labelledby="view-title" hidden>
+    <h2 class="view__title" id="view-title">Weergave aanpassen</h2>
+    <fieldset class="view__sizes">
+      <legend>Tekstgrootte</legend>
+      <label><input type="radio" name="size" value="" checked> Normaal</label>
+      <label><input type="radio" name="size" value="lg"> Groot</label>
+      <label><input type="radio" name="size" value="xl"> Extra groot</label>
+    </fieldset>
+    <label class="view__opt"><input type="checkbox" role="switch" name="still"><span><b>Animaties stoppen</b>Ook de 3D-flessen bewegen niet meer mee.</span></label>
+    <label class="view__opt"><input type="checkbox" role="switch" name="contrast"><span><b>Hoog contrast</b>Alle tekst in volle kleur, niets gedimd.</span></label>
+    <label class="view__opt"><input type="checkbox" role="switch" name="links"><span><b>Links onderlijnen</b>Zo zie je meteen waar je kunt klikken.</span></label>
+    <label class="view__opt"><input type="checkbox" role="switch" name="focus"><span><b>Duidelijke focusrand</b>Een dikkere rand rond wat je met Tab selecteert.</span></label>
+    <label class="view__opt"><input type="checkbox" role="switch" name="sans"><span><b>Eenvoudig lettertype</b>Koppen zonder schreefletter.</span></label>
+    <button class="view__reset" type="button">Alles terugzetten</button>
+  </div>
+</div>
+
+<div class="bar" data-bar>
+  <a class="bar__mark" href="#top">Creative Automation</a>
+  <nav class="bar__nav" aria-label="Onderdelen">
+    <button class="bar__toggle" type="button" aria-expanded="false" aria-controls="bar-list"><span class="sr-only">Menu, nu bij: </span><span class="bar__now">Menu</span><svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1 1.5l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
+    <ul class="bar__list" id="bar-list">
+      <li><a href="#lijn">Zo werkt het</a></li>
+      <li><a href="#opdracht">Periodeopdracht</a></li>
+      <li><a href="#onderdelen">Wat je leert</a></li>
+      <li><a href="#besparing">Tijdwinst</a></li>
+    </ul>
+  </nav>
+  <span class="bar__progress" aria-hidden="true"></span>
+</div>
+<header class="hero wrap" id="top" data-tone="night">
+  <nav class="nav" aria-label="Hoofdmenu">
+    <a class="nav__mark" href="#top">Creative Automation</a>
+    <ul>
+      <li><a href="#opdracht">Periodeopdracht</a></li>
+      <li><a href="#onderdelen">Wat je leert</a></li>
+      <li><a href="#besparing">Tijdwinst</a></li>
+    </ul>
+    <a class="button" href="#onderdelen">Bekijk het vak</a>
+  </nav>
+
+  <h1 class="display">
+    <span class="row"><span data-line style="--i:0">Creative</span><span class="slot" role="img" aria-label="Eén ontwerp in vier kleurvarianten, automatisch gemaakt">
+      <span class="slot__frame is-on" style="background:#268EA6"><svg viewBox="0 0 100 240" class="bottle v-cyan"><use href="#bottle"/></svg><svg viewBox="0 0 100 240" class="bottle v-sand"><use href="#bottle"/></svg><svg viewBox="0 0 100 240" class="bottle v-dark"><use href="#bottle"/></svg><svg viewBox="0 0 100 240" class="bottle v-cyan"><use href="#bottle"/></svg><svg viewBox="0 0 100 240" class="bottle v-sand"><use href="#bottle"/></svg></span>
+      <span class="slot__frame" style="background:#D9D3C1"><svg viewBox="0 0 100 240" class="bottle v-deep"><use href="#bottle"/></svg><svg viewBox="0 0 100 240" class="bottle v-cyan"><use href="#bottle"/></svg><svg viewBox="0 0 100 240" class="bottle v-deep"><use href="#bottle"/></svg><svg viewBox="0 0 100 240" class="bottle v-deep"><use href="#bottle"/></svg><svg viewBox="0 0 100 240" class="bottle v-cyan"><use href="#bottle"/></svg></span>
+      <span class="slot__frame" style="background:#29CDF2"><svg viewBox="0 0 100 240" class="bottle v-dark"><use href="#bottle"/></svg><svg viewBox="0 0 100 240" class="bottle v-sand"><use href="#bottle"/></svg><svg viewBox="0 0 100 240" class="bottle v-deep"><use href="#bottle"/></svg><svg viewBox="0 0 100 240" class="bottle v-dark"><use href="#bottle"/></svg><svg viewBox="0 0 100 240" class="bottle v-sand"><use href="#bottle"/></svg></span>
+      <span class="slot__frame" style="background:#262626"><svg viewBox="0 0 100 240" class="bottle v-sand"><use href="#bottle"/></svg><svg viewBox="0 0 100 240" class="bottle v-cyan"><use href="#bottle"/></svg><svg viewBox="0 0 100 240" class="bottle v-sand"><use href="#bottle"/></svg><svg viewBox="0 0 100 240" class="bottle v-sand"><use href="#bottle"/></svg><svg viewBox="0 0 100 240" class="bottle v-cyan"><use href="#bottle"/></svg></span>
+    </span></span>
+    <span class="row it"><span data-line style="--i:1">Automation</span></span>
+  </h1>
+
+  <div class="hero__foot">
+    <p class="lead" data-load style="--d:520ms">Een vak voor digitale vormgevers: je automatiseert repetitief werk en zet AI in als creatieve assistent.</p>
+    <ul class="hero__lines" data-load style="--d:600ms" aria-label="In dit vak">
+      <li>Photoshop-acties en batch</li>
+      <li>Bulk create in Figma Buzz</li>
+      <li>Beeld en video met Weave</li>
+      <li>Vibe coding met Claude Code</li>
+      <li>Automatisatieflows in MailerLite</li>
+    </ul>
+    <a class="button" data-load style="--d:680ms" href="#opdracht">Bekijk de periodeopdracht</a>
+  </div>
+</header>
+
+<main id="main" tabindex="-1">
+
+<section class="line" id="lijn" data-tone="night" aria-labelledby="lijn-title">
+  <div class="line__stage" aria-hidden="true">
+    <div class="line__meter"><span></span><span></span><span></span><span></span></div>
+  </div>
+  <div class="line__steps wrap">
+    <div class="line__skipbar"><a class="line__skip" href="#opdracht">Sla de animatie over<span aria-hidden="true"> ↓</span></a></div>
+    <h2 class="sr-only" id="lijn-title">Zo werkt automatisering: van één fles naar een hele campagne</h2>
+    <article class="line__step">
+      <h3 class="head">Je ontwerpt <span class="it">één keer</span></h3>
+      <p class="lead">Alles begint bij één ontwerp: de fles Bron, nog zonder kleur of label.</p>
+    </article>
+    <article class="line__step">
+      <h3 class="head">Je neemt een <span class="it">actie</span> op</h3>
+      <p class="lead">Photoshop onthoudt elke stap: kleur, label, export. Die reeks speel je af wanneer je wil.</p>
+    </article>
+    <article class="line__step">
+      <h3 class="head">De batch doet <span class="it">de rest</span></h3>
+      <p class="lead">Dezelfde actie loopt over een hele map. Tientallen varianten, zonder er één apart te openen.</p>
+    </article>
+    <article class="line__step">
+      <h3 class="head">Eén spreadsheet, <span class="it">een hele campagne</span></h3>
+      <p class="lead">Templates vullen zichzelf rij per rij. Jij houdt tijd over voor wat ertoe doet: het ontwerp.</p>
+      <table class="line__sheet">
+        <caption class="sr-only">De spreadsheet die de labels vult</caption>
+        <thead><tr><th scope="col">Titel</th><th scope="col">Tagline</th></tr></thead>
+        <tbody>
+          <tr><td>Drink bij de bron</td><td>Navulbaar, 750 ml</td></tr>
+          <tr><td>Altijd bij de hand</td><td>Past in elke tas</td></tr>
+          <tr><td>Koud tot 's avonds</td><td>Dubbelwandig staal</td></tr>
+          <tr><td>Vul me bij</td><td>120 tappunten in Gent</td></tr>
+        </tbody>
+      </table>
+    </article>
+  </div>
+</section>
+
+<section class="intro wrap" id="opdracht" data-tone="petrol" aria-labelledby="opdracht-title">
+  <div class="grid">
+    <div class="intro__text">
+      <h2 class="head" id="opdracht-title" data-reveal>Minder handwerk,<br><span class="it">meer varianten</span></h2>
+      <p class="lead measure" data-reveal style="--i:1">Je werkt minder met de hand, produceert meer varianten en houdt toch de controle over het design.</p>
+      <p class="measure" data-reveal style="--i:2">Doorheen het semester werk je aan een periodeopdracht: een volledige marketingcampagne voor een product, van briefing tot afgewerkte content. Op deze pagina zie je hoe dat eruitziet met een voorbeeldproduct, de drinkfles Bron.</p>
+    </div>
+    <figure class="intro__poster" data-shutter>
+      <svg viewBox="0 0 720 900" role="img" aria-label="Campagneaffiche voor de drinkfles Bron: drie flessen in cyaan, zand en grijs boven een waterlijn">
+        <rect width="720" height="900" fill="#268EA6"/>
+        <rect y="560" width="720" height="340" fill="#1d7488"/>
+        <path d="M0 560 q45 -18 90 0 t90 0 t90 0 t90 0 t90 0 t90 0 t90 0 t90 0 V600 H0z" fill="#1d7488"/>
+        <path d="M0 640 q45 -14 90 0 t90 0 t90 0 t90 0 t90 0 t90 0 t90 0 t90 0" fill="none" stroke="#29CDF2" stroke-width="3" opacity=".5"/>
+        <path d="M0 720 q45 -14 90 0 t90 0 t90 0 t90 0 t90 0 t90 0 t90 0 t90 0" fill="none" stroke="#29CDF2" stroke-width="3" opacity=".3"/>
+        <svg x="70" y="250" width="200" height="480" viewBox="0 0 100 240" class="bottle v-sand"><use href="#bottle"/></svg>
+        <svg x="250" y="170" width="240" height="576" viewBox="0 0 100 240" class="bottle v-cyan"><use href="#bottle"/></svg>
+        <svg x="470" y="280" width="190" height="456" viewBox="0 0 100 240" class="bottle v-dark"><use href="#bottle"/></svg>
+        <text x="56" y="96" font-family="Instrument Serif, serif" font-size="64" letter-spacing="-1" fill="#0D0D0D">Drink bij de bron</text>
+        <text x="58" y="136" font-family="Inter Tight, sans-serif" font-size="22" fill="#0D0D0D">Navulbaar, 750 ml, in vier kleuren</text>
+        <text x="56" y="852" font-family="Inter Tight, sans-serif" font-weight="500" font-size="22" fill="#D9D3C1">bron.be</text>
+      </svg>
+      <figcaption>Affiche uit de voorbeeldcampagne, het eindpunt van de periodeopdracht.</figcaption>
+    </figure>
+    <figure class="intro__story" data-reveal>
+      <svg viewBox="0 0 360 640" role="img" aria-label="Instagram-story uit dezelfde campagne: één zandkleurige fles op cyaan">
+        <rect width="360" height="640" fill="#29CDF2"/>
+        <path d="M0 470 q30 -12 60 0 t60 0 t60 0 t60 0 t60 0 t60 0 V640 H0z" fill="#268EA6"/>
+        <g class="drift"><svg x="105" y="170" width="150" height="360" viewBox="0 0 100 240" class="bottle v-sand"><use href="#bottle"/></svg></g>
+        <text x="32" y="78" font-family="Instrument Serif, serif" font-size="40" letter-spacing="-1" fill="#0D0D0D">Altijd bij</text>
+        <text x="32" y="122" font-family="Instrument Serif, serif" font-size="40" letter-spacing="-1" fill="#0D0D0D">de hand</text>
+        <rect x="32" y="574" width="296" height="40" rx="20" fill="#0D0D0D"/>
+        <text x="180" y="600" text-anchor="middle" font-family="Inter Tight, sans-serif" font-weight="500" font-size="16" fill="#D9D3C1">Bestel je fles</text>
+      </svg>
+    </figure>
+    <p class="intro__story-cap small" data-reveal style="--i:1">Dezelfde campagne als story. Elk formaat komt uit één set templates en één spreadsheet, zoals je verderop zelf kunt proberen.</p>
+  </div>
+</section>
+
+<section class="statement wrap" data-tone="petrol" aria-labelledby="leer-title">
+  <h2 class="sr-only" id="leer-title">Wat je leert</h2>
+  <div class="grid">
+    <p class="big" data-reveal>Je automatiseert Photoshop<span class="pw" aria-hidden="true"><svg viewBox="0 0 76 40"><rect width="76" height="40" fill="#262626"/><rect x="6" y="8" width="11" height="11" fill="#29CDF2"/><rect x="20" y="8" width="11" height="11" fill="#29CDF2"/><rect x="34" y="8" width="11" height="11" fill="#29CDF2"/><rect x="48" y="8" width="11" height="11" fill="#268EA6"/><rect x="62" y="8" width="8" height="11" fill="#5a5852"/><rect x="6" y="22" width="11" height="11" fill="#5a5852"/><rect x="20" y="22" width="11" height="11" fill="#5a5852"/><rect x="34" y="22" width="11" height="11" fill="#5a5852"/><rect x="48" y="22" width="11" height="11" fill="#5a5852"/><rect x="62" y="22" width="8" height="11" fill="#5a5852"/></svg></span>, vult Figma-templates met één spreadsheet<span class="pw" aria-hidden="true"><svg viewBox="0 0 76 40"><rect width="76" height="40" fill="#fff"/><rect y="0" width="76" height="10" fill="#e9e6dc"/><rect x="25" width="1.5" height="40" fill="#d0ccc0"/><rect x="51" width="1.5" height="40" fill="#d0ccc0"/><rect y="20" width="76" height="1.5" fill="#e5e5e5"/><rect y="30" width="76" height="1.5" fill="#e5e5e5"/><rect x="4" y="13" width="16" height="4" fill="#268EA6"/><rect x="30" y="13" width="17" height="4" fill="#268EA6"/><rect x="56" y="13" width="14" height="4" fill="#268EA6"/><rect x="4" y="24" width="12" height="4" fill="#999"/><rect x="30" y="24" width="15" height="4" fill="#999"/><rect x="56" y="24" width="10" height="4" fill="#999"/><rect x="4" y="34" width="14" height="4" fill="#999"/><rect x="30" y="34" width="12" height="4" fill="#999"/></svg></span>, genereert beeld met Weave<span class="pw" aria-hidden="true"><svg viewBox="0 0 76 40"><rect width="76" height="40" fill="#29CDF2"/><path d="M0 28 q9.5 -5 19 0 t19 0 t19 0 t19 0 V40 H0z" fill="#268EA6"/><svg x="27" y="2" width="22" height="44" viewBox="0 0 100 240" class="bottle v-sand"><use href="#bottle"/></svg></svg></span> en bouwt websites met Claude Code<span class="pw" aria-hidden="true"><svg viewBox="0 0 76 40"><rect width="76" height="40" fill="#0D0D0D"/><rect x="7" y="9" width="5" height="5" fill="#29CDF2"/><rect x="16" y="9" width="34" height="5" fill="#D9D3C1"/><rect x="16" y="18" width="46" height="5" fill="#8a867b"/><rect x="16" y="27" width="26" height="5" fill="#7fd3a8"/></svg></span>.</p>
+  </div>
+</section>
+
+<section class="contents wrap" id="onderdelen" data-tone="sand" aria-labelledby="inhoud-title">
+  <div class="grid">
+    <h2 class="head" id="inhoud-title" data-reveal>In dit <span class="it">nummer</span></h2>
+    <p class="contents__intro" data-reveal style="--i:1">Vijf onderdelen, telkens met de tools die je in de les echt gebruikt. Elk onderdeel levert een stuk van je campagne op.</p>
+    <ol class="contents__list">
+      <li data-reveal><a href="#beeld"><span class="c-title">Beeldbewerking</span><span class="c-text">Een actie opnemen en een hele map productfoto's in één keer verwerken.</span><span class="c-tools">Photoshop</span></a></li>
+      <li data-reveal style="--i:1"><a href="#social"><span class="c-title it">Social media</span><span class="c-text">Templates in elk formaat, automatisch gevuld vanuit één spreadsheet.</span><span class="c-tools">Figma Buzz</span></a></li>
+      <li data-reveal style="--i:2"><a href="#ai"><span class="c-title">Content generatie</span><span class="c-text">Beeld en video genereren, en AI taken laten uitvoeren op je bestanden.</span><span class="c-tools">Weave, Claude Cowork</span></a></li>
+      <li data-reveal style="--i:3"><a href="#code"><span class="c-title it">Vibe coding</span><span class="c-text">Websites en tools bouwen door in gewone taal te beschrijven wat je wil.</span><span class="c-tools">Claude Code, GitHub Pages</span></a></li>
+      <li data-reveal style="--i:4"><a href="#email"><span class="c-title">E-mailmarketing</span><span class="c-text">Inschrijvingsformulieren, campagnes en automatische welkomstmails.</span><span class="c-tools">MailerLite</span></a></li>
+    </ol>
+  </div>
+</section>
+
+
+<section class="topic wrap" id="beeld" data-tone="deep" aria-labelledby="beeld-title">
+  <p class="runhead" aria-hidden="true"><span>Creative Automation</span><span>Beeldbewerking</span></p>
+  <div class="grid">
+    <div class="topic__text">
+      <h2 class="head" id="beeld-title" data-reveal>Beeldbewerking:<br><span class="it">acties en batch</span></h2>
+      <p data-reveal style="--i:1">Je neemt Photoshop-acties op die een reeks bewerkingen onthouden: resizen, achtergronden uitbreiden met generative fill, een logo plaatsen en exporteren.</p>
+      <p data-reveal style="--i:2">Met batch-verwerking pas je die actie in één keer toe op een volledige map productfoto's. Zo verwerk je tientallen beelden consistent, zonder ze één voor één te openen.</p>
+    </div>
+    <div class="topic__proof" data-reveal style="--i:2">
+      <div data-ui class="ps" id="ps">
+        <div class="win">
+          <div class="win__bar"><span>Acties</span><span>Bron-campagne</span></div>
+          <div class="win__body">
+            <ol class="ps-actions">
+              <li class="set">Productfoto naar post</li>
+              <li class="step"><span class="tick"></span>Afbeeldingsgrootte<span class="val">1080 px</span></li>
+              <li class="step"><span class="tick"></span>Canvasgrootte<span class="val">1:1</span></li>
+              <li class="step"><span class="tick"></span>Generatieve vulling<span class="val">achtergrond</span></li>
+              <li class="step"><span class="tick"></span>Logo plaatsen<span class="val">rechtsonder</span></li>
+              <li class="step"><span class="tick"></span>Exporteren<span class="val">PNG</span></li>
+            </ol>
+            <div class="ps-run">
+              <button type="button" class="primary" id="ps-run">Batch uitvoeren</button>
+              <button type="button" id="ps-reset">Opnieuw</button>
+            </div>
+          </div>
+        </div>
+        <div class="win">
+          <div class="win__bar"><span>productfotos/</span><span id="ps-count">0 van 12</span></div>
+          <div class="win__body">
+            <div class="ps-folder" id="ps-folder"></div>
+            <div class="ps-status"><span>Bron</span><span>Map export/</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="topic field field--sand wrap" id="social" data-tone="sand" aria-labelledby="social-title">
+  <p class="runhead" aria-hidden="true"><span>Creative Automation</span><span>Social media</span></p>
+  <div class="grid">
+    <div class="bulk__intro">
+      <h2 class="head" id="social-title" data-reveal>Social media met<br><span class="it">Figma-automation</span></h2>
+      <p data-reveal style="--i:1">In Figma Buzz bouw je templates voor verschillende formaten, zoals Instagram-posts, stories en display-banners. Via bulk create vul je die templates automatisch met data uit een CSV- of XLSX-bestand: titels, taglines, call-to-actions en afbeeldingen.</p>
+    </div>
+    <p class="bulk__aside lead" data-reveal style="--i:2">Eén spreadsheet levert een volledige campagne op in alle formaten, met een consistent design. Pas hieronder een cel aan en kijk wat er gebeurt.</p>
+    <div class="bulk" data-reveal style="--i:1">
+      <div data-ui class="bulkui">
+        <div class="sheet">
+          <div class="sheet__bar"><span>campagne-bron.csv</span><span>3 rijen</span></div>
+          <table>
+            <colgroup><col style="width:30%"><col style="width:34%"><col style="width:20%"><col style="width:16%"></colgroup>
+            <thead><tr><th>titel</th><th>tagline</th><th>cta</th><th>kleur</th></tr></thead>
+            <tbody id="sheet-body"></tbody>
+          </table>
+          <p class="sheet__hint">Elke rij wordt één post, één story en één banner.</p>
+          <button type="button" class="sheet__go" id="sheet-shuffle">Vul met een andere campagne</button>
+        </div>
+        <div class="canvas">
+          <div class="canvas__bar"><span>Figma Buzz, bulk create</span><span id="art-count">9 ontwerpen</span></div>
+          <div id="canvas-rows"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="topic topic--flip field field--petrol wrap" id="ai" data-tone="petrol" aria-labelledby="ai-title">
+  <p class="runhead" aria-hidden="true"><span>Creative Automation</span><span>Content generatie</span></p>
+  <div class="grid">
+    <div class="topic__text">
+      <h2 class="head" id="ai-title" data-reveal>Content <span class="it">met AI</span></h2>
+      <p data-reveal style="--i:1">Je genereert beelden en video met AI-tools zoals Weave, en leert hoe je met goede prompts een consistente stijl bewaakt.</p>
+      <p data-reveal style="--i:2">Met Claude Cowork laat je AI zelfstandig taken uitvoeren op je eigen bestanden: teksten schrijven, documenten opmaken en content plannen. Je ontdekt waar AI je werk versnelt en waar je zelf moet bijsturen.</p>
+      <div data-ui class="cowork" data-reveal style="--i:3">
+        <div class="cw-ask">Schrijf captions voor de twaalf posts in campagne-bron.csv en zet ze in de contentplanning van april.</div>
+        <ul class="cw-tasks">
+          <li><span class="st"></span>Spreadsheet gelezen, 12 posts gevonden<span class="f">campagne-bron.csv</span></li>
+          <li><span class="st"></span>12 captions geschreven in de toon van de briefing<span class="f">captions.docx</span></li>
+          <li><span class="st now"></span>Planning van april aan het opmaken<span class="f">planning.xlsx</span></li>
+          <li><span class="st wait"></span>Wacht op jouw akkoord voor publicatie</li>
+        </ul>
+      </div>
+    </div>
+    <div class="topic__proof" data-reveal style="--i:1">
+      <div data-ui class="weave">
+        <div class="wv-graph">
+          <div>
+            <div class="wv-node"><h3>Prompt</h3><p>Navulbare drinkfles op een natte steen aan de waterkant, zacht zijlicht, rustige compositie, veel lucht boven het product</p></div>
+            <div class="wv-node"><h3>Stijlreferentie</h3><div class="wv-ref"><span style="background:#29CDF2"></span><span style="background:#268EA6"></span><span style="background:#D9D3C1"></span><span style="background:#262626"></span></div></div>
+          </div>
+          <span class="wv-wire" aria-hidden="true"></span>
+          <div>
+            <div class="wv-out" role="img" aria-label="Vier beeldvarianten van de fles in dezelfde stijl">
+              <div class="img sel" style="background:#268EA6"><svg viewBox="0 0 100 240" class="bottle v-sand" style="--r:-4deg"><use href="#bottle"/></svg></div>
+              <div class="img" style="background:#D9D3C1"><svg viewBox="0 0 100 240" class="bottle v-deep" style="--r:3deg"><use href="#bottle"/></svg></div>
+              <div class="img" style="background:#262626"><svg viewBox="0 0 100 240" class="bottle v-cyan" style="--r:0deg"><use href="#bottle"/></svg></div>
+              <div class="img" style="background:#29CDF2"><svg viewBox="0 0 100 240" class="bottle v-dark" style="--r:-2deg"><use href="#bottle"/></svg></div>
+            </div>
+            <div class="wv-meta"><span>4 varianten</span><span>zelfde stijl, andere achtergrond</span></div>
+          </div>
+        </div>
+      </div>
+      <figure class="aivid">
+        <div class="aivid__frame">
+          <video class="aivid__video" src="media/ai-video.mp4" poster="media/ai-video-poster.jpg" muted loop playsinline preload="metadata" aria-describedby="aivid-cap"></video>
+          <div class="aivid__controls">
+            <button type="button" class="aivid__btn" data-act="play" aria-pressed="false">Speel af</button>
+            <button type="button" class="aivid__btn" data-act="sound" aria-pressed="false">Geluid aan</button>
+          </div>
+        </div>
+        <figcaption id="aivid-cap"><span class="aivid__label">Gegenereerd met AI</span>Een korte video over ontwerpers die hun werk automatiseren, volledig met AI gemaakt. Zo'n clip maak je zelf in dit onderdeel.</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section class="pull wrap" data-tone="night" aria-label="Citaat uit de vakbeschrijving">
+  <blockquote data-reveal><p>Je ontdekt waar AI je werk versnelt, <span class="it">en waar je zelf moet bijsturen.</span></p></blockquote>
+</section>
+
+<section class="topic field field--sand wrap" id="code" data-tone="sand" aria-labelledby="code-title">
+  <p class="runhead" aria-hidden="true"><span>Creative Automation</span><span>Vibe coding en web</span></p>
+  <div class="grid">
+    <div class="topic__text">
+      <h2 class="head" id="code-title" data-reveal>Vibe coding<br><span class="it">en web</span></h2>
+      <p data-reveal style="--i:1">Met Claude Code bouw je websites en tools door in gewone taal te beschrijven wat je wil. Je breidt Claude uit met skills, en via de Figma MCP-koppeling laat je Claude ontwerpen genereren in Figma en designs omzetten naar HTML en CSS.</p>
+      <ul class="points">
+        <li data-reveal style="--i:2">Je bouwt je eigen Figma-plugin.</li>
+        <li data-reveal style="--i:3">Je zet je websites online met GitHub Pages.</li>
+      </ul>
+    </div>
+    <div class="topic__proof" data-reveal style="--i:2">
+      <div class="term" data-ui>
+        <div class="term__bar"><span>bron-site</span><span>Claude Code</span></div>
+<pre><code><span class="p">&gt;</span> Bouw een onepager voor Bron op basis van het
+  Figma-ontwerp. Gebruik de kleuren uit de campagne.
+
+<span class="d">  Figma-ontwerp gelezen via de MCP-koppeling</span>
+<span class="d">  3 secties, 4 kleuren, 1 lettertype</span>
+<span class="ok">  index.html en style.css aangemaakt</span>
+
+<span class="p">&gt;</span> Zet de site online.
+
+<span class="ok">  Gepubliceerd met GitHub Pages</span>
+<span class="d">  https://jouwnaam.github.io/bron</span></code></pre>
+      </div>
+      <div data-ui class="browser">
+        <div class="br-bar"><span class="br-dots"><i></i><i></i><i></i></span><span class="br-url">jouwnaam.github.io/bron</span></div>
+        <div class="br-page">
+          <div class="br-nav"><b>bron</b><span>Kleuren</span><span>Tappunten</span><span class="br-btn">Bestel</span></div>
+          <div class="br-hero">
+            <div><p class="br-h">Drink bij<br><em>de bron</em></p><p class="br-s">Navulbare fles, 750 ml, in vier kleuren.</p></div>
+            <svg viewBox="0 0 100 240" class="bottle v-dark"><use href="#bottle"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="topic mail wrap" id="email" data-tone="deep" aria-labelledby="email-title">
+  <p class="runhead" aria-hidden="true"><span>Creative Automation</span><span>E-mailmarketing</span></p>
+  <div class="grid">
+    <h2 class="head" id="email-title" data-reveal>E-mailmarketing <span class="it">en newsletters</span></h2>
+    <div class="mail__left"><p class="mail__lede" data-reveal style="--i:1">In MailerLite bouw je inschrijvingsformulieren die je op een website plaatst, ontwerp je e-mailcampagnes en zet je automatisatieflows op. Zo leer je hoe merken hun publiek opbouwen en blijven bereiken.</p>
+        <div class="mail__form" data-reveal style="--i:3">
+      <div data-ui class="mlform">
+        <h3>Blijf op de hoogte van Bron</h3>
+        <p>Nieuwe kleuren en tips om minder plastic te gebruiken, één keer per maand.</p>
+        <label>E-mailadres</label>
+        <div class="in">jij@voorbeeld.be</div>
+        <div class="btn">Inschrijven</div>
+        <p class="fine">Formulier gemaakt in MailerLite, ingebed op de website.</p>
+      </div>
+    </div>
+    </div>
+<div class="mail__tablewrap" data-reveal style="--i:2">
+      <p class="mail__label">Voorbeeld van een welkomstflow</p>
+      <table class="flow">
+        <tbody>
+          <tr><td>Trigger</td><td><strong>Iemand schrijft zich in</strong> via het formulier op bron.be</td><td>meteen</td></tr>
+          <tr><td>Mail 1</td><td>Welkom bij Bron, met je kortingscode</td><td>dag 0</td></tr>
+          <tr><td>Mail 2</td><td>Zo vul je je fles onderweg bij</td><td>dag 2</td></tr>
+          <tr class="gap"><td>Voorwaarde</td><td>Code gebruikt?</td><td>dag 5</td></tr>
+          <tr><td>Ja</td><td>Bedankt, en kies je tweede kleur</td><td>dag 6</td></tr>
+          <tr><td>Nee</td><td>Herinnering: je code verloopt bijna</td><td>dag 6</td></tr>
+          <tr class="gap"><td>Einde</td><td>Door naar de maandelijkse nieuwsbrief</td><td>dag 14</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="besparing wrap" id="besparing" data-tone="night" aria-labelledby="besparing-title">
+  <div class="grid">
+    <div class="besparing__text">
+      <h2 class="head" id="besparing-title" data-reveal>Hoeveel tijd <span class="it">win je?</span></h2>
+      <p class="lead" data-reveal style="--i:1">Stel in hoeveel taken je elke week met de hand doet, zoals beelden exporteren of formaten aanpassen. De grafiek toont wat automatiseren oplevert over een schooljaar.</p>
+      <p class="besparing__note small" data-reveal style="--i:2">De berekening gaat uit van 12 minuten per taak met de hand, 2 minuten om een geautomatiseerde taak na te kijken, 4 uur om de automatisering eenmalig op te zetten, 46 werkweken en een uurtarief van 40 euro.</p>
+    </div>
+    <div class="besparing__app" id="besparing-app">
+      <p class="besparing__fallback">Bij 20 taken per week werk je met de hand 184 uur per schooljaar (7.360 euro). Geautomatiseerd is dat 35 uur (1.387 euro): je wint 149 uur.</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer" data-tone="deep">
+  <div class="grid wrap">
+    <div class="footer__invite">
+      <h2>Laat het saaie werk<br><span class="it">vanzelf lopen</span></h2>
+      <a class="button button--dark" href="#beeld">Begin bij het eerste onderdeel</a>
+    </div>
+    <ul class="footer__links">
+      <li><a href="#beeld">Acties en batch</a></li>
+      <li><a href="#social">Figma-automation</a></li>
+      <li><a href="#ai">Weave en Cowork</a></li>
+      <li><a href="#code">Vibe coding</a></li>
+      <li><a href="#email">E-mailmarketing</a></li>
+    </ul>
+  </div>
+  <div class="footer__bottom">
+    <div class="footer__legal wrap">
+      <span>Bron is een verzonnen voorbeeldproduct. Alle beelden zijn tekeningen en interfacefragmenten, gemaakt voor deze pagina.</span>
+      <a href="#top">Naar boven</a>
+    </div>
+    <div class="footer__mark" aria-hidden="true">Creative Automation</div>
+  </div>
+</footer>
+
+<script src="vendor/react.production.min.js" defer></script>
+<script src="vendor/react-dom.production.min.js" defer></script>
+<script src="vendor/htm.umd.js" defer></script>
+<script src="besparing.js" defer></script>
+<script src="tones.js" defer></script>
+<script src="weergave.js" defer></script>
+<script src="vendor/three.min.js" defer></script>
+<script src="line.js" defer></script>
+<script src="script.js" defer></script>
+</body>
+</html>
